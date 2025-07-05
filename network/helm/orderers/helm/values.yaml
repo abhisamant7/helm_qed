@@ -1,0 +1,26 @@
+replicaCount: 1
+
+image:
+  repository: hyperledger/fabric-orderer
+  tag: "2.4"
+
+persistence:
+  existingClaim: efs-claim
+
+tls:
+  enabled: true
+  certFile: /etc/hyperledger/fabric/tls/server.crt
+  keyFile: /etc/hyperledger/fabric/tls/server.key
+  rootCertFile: /etc/hyperledger/fabric/tls/ca.crt
+
+service:
+  type: ClusterIP
+  port: 7050
+
+orderers:
+  - name: orderer0
+    mspId: OrdererMSP
+    genesisBlock: /etc/hyperledger/fabric/genesis.block
+  - name: orderer1
+    mspId: OrdererMSP
+    genesisBlock: /etc/hyperledger/fabric/genesis.block

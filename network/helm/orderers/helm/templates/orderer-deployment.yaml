@@ -1,0 +1,64 @@
+{{- range .Values.orderers }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .name }}-deployment
+  labels:
+    app: orderer
+    orderer-name: {{ .name }}
+spec:
+  replicas: {{ $.Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: orderer
+      orderer-name: {{ .name }}
+  template:
+    metadata:
+      labels:
+        app: orderer
+        orderer-name: {{ .name }}
+    spec:
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: {{ $.Values.persistence.existingClaim }}
+      containers:
+        - name: {{ .name }}
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          command: ["orderer"]
+          env:
+            - name: FABRIC_LOGGING_SPEC
+              value: INFO
+            - name: ORDERER_GENERAL_LISTENADDRESS
+              value: 0.0.0.0
+            - name: ORDERER_GENERAL_GENESISMETHOD
+              value: file
+            - name: ORDERER_GENERAL_GENESISFILE
+              value: {{ .genesisBlock }}
+            - name: ORDERER_GENERAL_LOCALMSPID
+              value: {{ .mspId }}
+            - name: ORDERER_GENERAL_LOCALMSPDIR
+              value: /etc/hyperledger/fabric/msp
+            - name: ORDERER_GENERAL_TLS_ENABLED
+              value: "{{ $.Values.tls.enabled }}"
+            - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+              value: {{ $.Values.tls.keyFile }}
+            - name: ORDERER_GENERAL_TLS_CERTIFICATE
+              value: {{ $.Values.tls.certFile }}
+            - name: ORDERER_GENERAL_TLS_ROOTCAS
+              value: "[{{ $.Values.tls.rootCertFile }}]"
+          volumeMounts:
+            - mountPath: /etc/hyperledger/fabric/msp
+              name: persistent-storage
+              subPath: files/crypto-config/ordererOrganizations/orderer/orderers/{{ .name }}/msp
+            - mountPath: /etc/hyperledger/fabric/tls
+              name: persistent-storage
+              subPath: files/crypto-config/ordererOrganizations/orderer/orderers/{{ .name }}/tls
+            - mountPath: /etc/hyperledger/fabric/
+              name: persistent-storage
+              subPath: files/core/
+            - mountPath: /etc/hyperledger/fabric/genesis.block
+              name: persistent-storage
+              subPath: files/genesis.block
+---
+{{- end }}

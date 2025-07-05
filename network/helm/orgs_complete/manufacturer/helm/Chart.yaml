@@ -1,0 +1,6 @@
+apiVersion: v2
+name: manufacturer-infra
+description: Helm chart for Hyperledger Fabric manufacturer org (cli and couchdb)
+type: application
+version: 0.1.0
+appVersion: "2.4"

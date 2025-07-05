@@ -1,0 +1,18 @@
+{{- range .Values.orderers }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}-service
+  labels:
+    app: orderer
+    orderer-name: {{ .name }}
+spec:
+  type: {{ $.Values.service.type }}
+  selector:
+    app: orderer
+    orderer-name: {{ .name }}
+  ports:
+    - port: {{ $.Values.service.port }}
+      targetPort: {{ $.Values.service.port }}
+---
+{{- end }}

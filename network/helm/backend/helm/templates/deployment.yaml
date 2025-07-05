@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "backend.fullname" . }}-deployment
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: mean-qedclient
+  template:
+    metadata:
+      labels:
+        app: mean-qedclient
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - mean-qedclient
+                topologyKey: topology.kubernetes.io/hostname
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecrets.main }}
+      containers:
+        - name: mean-qedclient
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+{{- range $key, $val := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+{{- end }}
+          volumeMounts:
+            - mountPath: /files
+              name: persistent-storage
+              subPath: files
+            - mountPath: /usr/src/app/qedclient
+              name: persistent-storage
+              subPath: files/qedclient
+            - mountPath: /usr/src/app/qedadmin
+              name: persistent-storage
+              subPath: files/qedadmin
+            - mountPath: /hyperledger-fabric/wallet
+              name: persistent-storage
+              subPath: files/wallet
+            - mountPath: hyperledger-fabric/organizations
+              name: persistent-storage
+              subPath: files/crypto-config
+            - mountPath: /prisma/migrations
+              name: persistent-storage
+              subPath: files/migrations
+          ports:
+            - containerPort: 80

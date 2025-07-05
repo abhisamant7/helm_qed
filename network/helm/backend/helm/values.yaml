@@ -1,0 +1,45 @@
+replicaCount: 1
+
+image:
+  repository: registry.gitlab.com/prashantqspear/qedserver
+  tag: sandbox_new
+  pullPolicy: Always
+
+cronjobImage:
+  repository: registry.gitlab.com/akhileshqspear/qedcron
+  tag: sandbox
+  pullPolicy: Always
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 80
+
+cronjobService:
+  type: NodePort
+  port: 80
+  targetPort: 80
+
+env:
+  ENV: sandbox
+  HYPERLEDGER_CONFIG_PATH: "/files/config.yaml"
+  MSPID: qedclient
+  MAIL_LINK: "https://e.appsqedvault.com/"
+  AWS_REGION: us-west-1
+  AWS_BUCKET_NAME: qedlitesandbox
+  AWS_SMEBUCKET_NAME: qedlitesandbox
+  AWS_TICKETBUCKET_NAME: qedlitesandbox
+  BUSINESSLITE_LINK: "https://e.appsqedvault.com/"
+  DATABASE_URL: "postgresql://qaadmin:q3d-dm1n@qedqadb.c18snckggfgk.us-east-2.rds.amazonaws.com:5432/qedvaultsandbox?schema=public"
+  SUCCESS_URL: "https://e.appsqedvault.com/success"
+  CANCEL_URL: "https://e.appsqedvault.com/cancel"
+  CA_ADMINUSER: admin
+  CA_ADMINPASSWORD: azcemwisro
+
+persistence:
+  enabled: true
+  existingClaim: efs-claim
+
+imagePullSecrets:
+  main: qedbackend-key
+  cronjobs: cronjobs

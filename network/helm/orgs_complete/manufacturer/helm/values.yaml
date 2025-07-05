@@ -1,0 +1,17 @@
+couchdb:
+  replicaCount: 1
+  image: hyperledger/fabric-couchdb:0.4.18
+  username: manufactureadmin
+  password: manu7548tyjf32
+  persistence:
+    enabled: false
+
+cli:
+  image: hyperledger/fabric-tools:2.4
+  env:
+    FABRIC_LOGGING_SPEC: INFO
+    CORE_PEER_TLS_ENABLED: "true"
+    CORE_PEER_LOCALMSPID: manufacturer
+    CORE_PEER_MSPCONFIGPATH: /etc/hyperledger/fabric/msp
+  persistence:
+    existingClaim: efs-claim

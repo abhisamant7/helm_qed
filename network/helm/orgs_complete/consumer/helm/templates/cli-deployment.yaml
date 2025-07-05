@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cli-consumer
+  labels:
+    app: cli
+    org: consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cli
+      org: consumer
+  template:
+    metadata:
+      labels:
+        app: cli
+        org: consumer
+    spec:
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.cli.persistence.existingClaim }}
+      containers:
+        - name: cli
+          image: "{{ .Values.cli.image }}"
+          tty: true
+          command: ["/bin/bash", "-c", "sleep infinity"]
+          env:
+            - name: FABRIC_LOGGING_SPEC
+              value: "{{ .Values.cli.env.FABRIC_LOGGING_SPEC }}"
+            - name: CORE_PEER_TLS_ENABLED
+              value: "{{ .Values.cli.env.CORE_PEER_TLS_ENABLED }}"
+            - name: CORE_PEER_LOCALMSPID
+              value: "{{ .Values.cli.env.CORE_PEER_LOCALMSPID }}"
+            - name: CORE_PEER_MSPCONFIGPATH
+              value: "{{ .Values.cli.env.CORE_PEER_MSPCONFIGPATH }}"
+          volumeMounts:
+            - mountPath: /etc/hyperledger/fabric/msp
+              name: persistent-storage
+              subPath: files/crypto-config/peerOrganizations/consumer/users/Admin@consumer/msp
+            - mountPath: /scripts
+              name: persistent-storage
+              subPath: files/scripts

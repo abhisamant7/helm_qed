@@ -1,0 +1,98 @@
+{{- $org := "consumer" -}}
+{{- range $idx, $peer := list "peer0" "peer1" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $peer }}-{{ $org }}-deployment
+  labels:
+    component: {{ $peer }}
+    type: peer
+    org: {{ $org }}
+spec:
+  replicas: {{ $.Values.replicaCount }}
+  selector:
+    matchLabels:
+      component: {{ $peer }}
+      type: peer
+      org: {{ $org }}
+  template:
+    metadata:
+      labels:
+        component: {{ $peer }}
+        type: peer
+        org: {{ $org }}
+    spec:
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: {{ $.Values.persistence.existingClaim }}
+        - name: host
+          hostPath:
+            path: /var/run
+      containers:
+        - name: {{ $peer }}-{{ $org }}
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          workingDir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+          command: ["peer"]
+          args: ["node","start"]
+          env:
+            - name: CORE_PEER_ADDRESSAUTODETECT
+              value: "true"
+            - name: CORE_PEER_ID
+              value: {{ $peer }}-{{ $org }}-service
+            - name: CORE_PEER_LISTENADDRESS
+              value: 0.0.0.0:7051
+            - name: CORE_PEER_GOSSIP_BOOTSTRAP
+              value: {{ (index (list "peer1" "peer0") $idx) }}-{{ $org }}-service:7051
+            - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
+              value: {{ $peer }}-{{ $org }}-service:7051
+            - name: CORE_PEER_GOSSIP_ENDPOINT
+              value: {{ $peer }}-{{ $org }}-service:7051
+            - name: CORE_PEER_CHAINCODELISTENADDRESS
+              value: 0.0.0.0:7052
+            - name: CORE_PEER_LOCALMSPID
+              value: {{ $org }}
+            - name: CORE_PEER_ENDORSER_ENABLED
+              value: "true"
+            - name: CORE_PEER_TLS_ENABLED
+              value: "{{ $.Values.tls.enabled }}"
+            - name: CORE_PEER_TLS_CERT_FILE
+              value: {{ $.Values.tls.certFile }}
+            - name: CORE_PEER_TLS_KEY_FILE
+              value: {{ $.Values.tls.keyFile }}
+            - name: CORE_PEER_TLS_ROOTCERT_FILE
+              value: {{ $.Values.tls.rootCertFile }}
+            - name: CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS
+              value: {{ if eq $peer "peer0" }}{{ $.Values.couchdb.addressPeer0 }}{{ else }}{{ $.Values.couchdb.addressPeer1 }}{{ end }}
+            - name: CORE_LEDGER_STATE_STATEDATABASE
+              value: CouchDB
+            - name: CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME
+              value: {{ $.Values.couchdb.username }}
+            - name: CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
+              value: "{{ $.Values.couchdb.password }}"
+          volumeMounts:
+            - mountPath: /var/run
+              name: host
+            - mountPath: /etc/hyperledger/fabric/msp
+              name: persistent-storage
+              subPath: files/crypto-config/peerOrganizations/consumer/peers/{{ $peer }}-consumer/msp
+            - mountPath: /etc/hyperledger/fabric/tls
+              name: persistent-storage
+              subPath: files/crypto-config/peerOrganizations/consumer/peers/{{ $peer }}-consumer/tls
+            - mountPath: /scripts
+              name: persistent-storage
+              subPath: files/scripts
+            - mountPath: /etc/hyperledger/orderers
+              name: persistent-storage
+              subPath: files/crypto-config/ordererOrganizations/orderer
+            - mountPath: /var/hyperledger/production/
+              name: persistent-storage
+              subPath: files/backup/backup_peer/consumer{{ $peer }}
+            - mountPath: /etc/hyperledger/fabric/
+              name: persistent-storage
+              subPath: files/core/
+            - mountPath: /opt/hyperledger/ccaas_builder
+              name: persistent-storage
+              subPath: files/ccaas_builder/
+---
+{{- end }}

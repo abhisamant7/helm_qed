@@ -1,0 +1,24 @@
+replicaCount: 1
+
+image:
+  repository: hyperledger/fabric-peer
+  tag: "2.4"
+
+persistence:
+  existingClaim: efs-claim
+
+couchdb:
+  addressPeer0: peer0-manufacturer-couchdb:5984
+  addressPeer1: peer1-manufacturer-couchdb:5984
+  username: manufactureadmin
+  password: manu7548tyjf32
+
+tls:
+  enabled: true
+  certFile: /etc/hyperledger/fabric/tls/server.crt
+  keyFile: /etc/hyperledger/fabric/tls/server.key
+  rootCertFile: /etc/hyperledger/fabric/tls/ca.crt
+
+service:
+  type: ClusterIP
+  port: 7051

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "backend.fullname" . }}-service
+  labels:
+    app: mean-qedclient
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: mean-qedclient
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}

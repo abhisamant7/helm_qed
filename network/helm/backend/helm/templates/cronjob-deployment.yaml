@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cronjobs-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cronjobs
+  template:
+    metadata:
+      labels:
+        app: cronjobs
+    spec:
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecrets.cronjobs }}
+      containers:
+        - name: cronjobs-backend
+          image: "{{ .Values.cronjobImage.repository }}:{{ .Values.cronjobImage.tag }}"
+          imagePullPolicy: {{ .Values.cronjobImage.pullPolicy }}
+          env:
+            - name: ENV
+              value: {{ .Values.env.ENV | quote }}
+            - name: HYPERLEDGER_CONFIG_PATH
+              value: {{ .Values.env.HYPERLEDGER_CONFIG_PATH | quote }}
+            - name: DATABASE_URL
+              value: {{ .Values.env.DATABASE_URL | quote }}
+          volumeMounts:
+            - mountPath: /files
+              name: persistent-storage
+              subPath: files
+            - mountPath: /usr/src/app/qedclient
+              name: persistent-storage
+              subPath: files/qedclient
+            - mountPath: /usr/src/app/qedadmin
+              name: persistent-storage
+              subPath: files/qedadmin
+            - mountPath: /hyperledger-fabric/wallet
+              name: persistent-storage
+              subPath: files/wallet
+            - mountPath: /hyperledger-fabric/organizations
+              name: persistent-storage
+              subPath: files/crypto-config
+            - mountPath: /prisma/migrations
+              name: persistent-storage
+              subPath: files/migrations
+          ports:
+            - containerPort: 80

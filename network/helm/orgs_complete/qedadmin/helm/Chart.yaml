@@ -1,0 +1,6 @@
+apiVersion: v2
+name: qedadmin-infra
+description: Helm chart for Hyperledger Fabric qedadmin org (cli and couchdb)
+type: application
+version: 0.1.0
+appVersion: "2.4"

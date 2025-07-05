@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: couchdb-manufacturer
+  labels:
+    app: couchdb
+    org: manufacturer
+spec:
+  replicas: {{ .Values.couchdb.replicaCount }}
+  selector:
+    matchLabels:
+      app: couchdb
+      org: manufacturer
+  template:
+    metadata:
+      labels:
+        app: couchdb
+        org: manufacturer
+    spec:
+      containers:
+        - name: couchdb
+          image: "{{ .Values.couchdb.image }}"
+          env:
+            - name: COUCHDB_USER
+              value: "{{ .Values.couchdb.username }}"
+            - name: COUCHDB_PASSWORD
+              value: "{{ .Values.couchdb.password }}"
+          ports:
+            - containerPort: 5984
+          {{- if .Values.couchdb.persistence.enabled }}
+          volumeMounts:
+            - name: couchdb-data
+              mountPath: /opt/couchdb/data
+          {{- end }}
+      {{- if .Values.couchdb.persistence.enabled }}
+      volumes:
+        - name: couchdb-data
+          persistentVolumeClaim:
+            claimName: couchdb-manufacturer-pvc
+      {{- end }}

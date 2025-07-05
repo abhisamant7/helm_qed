@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.org }}-ca-service
+  labels:
+    app: {{ .Values.org }}-ca
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: {{ .Values.org }}-ca
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}

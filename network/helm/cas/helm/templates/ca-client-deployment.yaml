@@ -1,0 +1,35 @@
+{{- if eq .Values.type "client" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.org }}-ca-client-deployment
+  labels:
+    app: {{ .Values.org }}-ca-client
+    type: ca-client
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.org }}-ca-client
+      type: ca-client
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.org }}-ca-client
+        type: ca-client
+    spec:
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+      containers:
+        - name: {{ .Values.org }}-ca-client
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          env:
+            - name: FABRIC_CA_CLIENT_HOME
+              value: {{ .Values.env.client.FABRIC_CA_CLIENT_HOME }}
+          volumeMounts:
+            - mountPath: /etc/hyperledger/fabric-ca-client
+              name: persistent-storage
+              subPath: files/fabric-ca-client/{{ .Values.org }}
+{{- end }}

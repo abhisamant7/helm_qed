@@ -1,0 +1,21 @@
+{{- $org := "qedadmin" -}}
+{{- range $peer := list "peer0" "peer1" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $peer }}-{{ $org }}-service
+  labels:
+    component: {{ $peer }}
+    type: peer
+    org: {{ $org }}
+spec:
+  type: {{ $.Values.service.type }}
+  selector:
+    component: {{ $peer }}
+    type: peer
+    org: {{ $org }}
+  ports:
+    - port: {{ $.Values.service.port }}
+      targetPort: {{ $.Values.service.port }}
+---
+{{- end }}

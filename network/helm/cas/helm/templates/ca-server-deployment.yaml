@@ -1,0 +1,43 @@
+{{- if eq .Values.type "server" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.org }}-ca-deployment
+  labels:
+    app: {{ .Values.org }}-ca
+    type: ca-server
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.org }}-ca
+      type: ca-server
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.org }}-ca
+        type: ca-server
+    spec:
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+      containers:
+        - name: {{ .Values.org }}-ca
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          env:
+            - name: FABRIC_CA_HOME
+              value: {{ .Values.env.server.FABRIC_CA_HOME }}
+            - name: FABRIC_CA_SERVER_CA_NAME
+              value: {{ .Values.env.server.FABRIC_CA_SERVER_CA_NAME }}
+            - name: FABRIC_CA_SERVER_TLS_ENABLED
+              value: {{ .Values.env.server.FABRIC_CA_SERVER_TLS_ENABLED }}
+            - name: FABRIC_CA_SERVER_PORT
+              value: {{ .Values.env.server.FABRIC_CA_SERVER_PORT }}
+          ports:
+            - containerPort: 7054
+          volumeMounts:
+            - mountPath: /etc/hyperledger/fabric-ca-server
+              name: persistent-storage
+              subPath: files/fabric-ca-server/{{ .Values.org }}
+{{- end }}

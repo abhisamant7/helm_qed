@@ -1,0 +1,6 @@
+apiVersion: v2
+name: consumer-infra
+description: Helm chart for Hyperledger Fabric consumer org (cli and couchdb)
+type: application
+version: 0.1.0
+appVersion: "2.4"
